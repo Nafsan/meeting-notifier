@@ -1,18 +1,6 @@
-import datetime as dt
-
 import pystray
 
 from app_icon import make_icon_image
-
-
-def _status_text(scheduler):
-    status = scheduler.status()
-    if status["last_sync_error"]:
-        return f"Sync error: {status['last_sync_error'][:40]}"
-    if status["last_sync_at"] is None:
-        return "Not synced yet"
-    ts = dt.datetime.fromtimestamp(status["last_sync_at"]).strftime("%I:%M %p")
-    return f"Synced {ts} | {status['upcoming_count']} upcoming"
 
 
 def create_icon(scheduler, on_open, on_quit):
@@ -26,8 +14,10 @@ def create_icon(scheduler, on_open, on_quit):
         icon.stop()
         on_quit()
 
+    # All menu text here is static - sync status lives in the dashboard
+    # instead, which can refresh live without needing to rebuild the native
+    # tray menu (a real OS-level operation, not a cheap one) on a timer.
     menu = pystray.Menu(
-        pystray.MenuItem(lambda _item: _status_text(scheduler), None, enabled=False),
         pystray.MenuItem("Open dashboard", open_dashboard, default=True),
         pystray.MenuItem("Sync now", sync_now),
         pystray.MenuItem("Quit", quit_app),
