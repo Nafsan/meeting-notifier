@@ -11,7 +11,7 @@ DEFAULTS = {
     "calendar_id": "primary",
     "alert_lead_seconds": 60,
     "sync_interval_seconds": 300,
-    "snooze_seconds": 60,
+    "snooze_seconds": 300,
     "lookahead_hours": 12,
 }
 

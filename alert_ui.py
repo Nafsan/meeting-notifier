@@ -160,8 +160,9 @@ def show_alert(root, alert_info, on_snooze, snooze_seconds):
         on_join, hover_fill=MEET_GREEN_HOVER,
     )
     _make_pill(
-        canvas, cx - 65, secondary_btn_y, 110, 34, "Snooze", CARD_BG, TEXT_PRIMARY,
-        on_snooze_click, outline=OUTLINE_BTN, hover_fill=GHOST_HOVER, font_weight="normal",
+        canvas, cx - 65, secondary_btn_y, 110, 34, "Snooze",
+        CARD_BG, TEXT_PRIMARY, on_snooze_click,
+        outline=OUTLINE_BTN, hover_fill=GHOST_HOVER, font_weight="normal",
     )
     _make_pill(
         canvas, cx + 65, secondary_btn_y, 110, 34, "Dismiss", CARD_BG, TEXT_SECONDARY,
