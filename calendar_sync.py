@@ -1,14 +1,21 @@
 import datetime as dt
 import logging
 
+import httplib2
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
+from google_auth_httplib2 import AuthorizedHttp
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 
 from config import CREDENTIALS_PATH, TOKEN_PATH
 
 SCOPES = ["https://www.googleapis.com/auth/calendar.readonly"]
+
+# Without an explicit timeout, a stalled network call can block the HTTP
+# client forever, freezing the whole scheduler loop (no more syncs, no more
+# alerts) with nothing in the log to explain why.
+REQUEST_TIMEOUT_SECONDS = 15
 
 log = logging.getLogger("calendar_sync")
 
@@ -38,7 +45,8 @@ def get_credentials():
 
 def build_service():
     creds = get_credentials()
-    return build("calendar", "v3", credentials=creds, cache_discovery=False)
+    http = AuthorizedHttp(creds, http=httplib2.Http(timeout=REQUEST_TIMEOUT_SECONDS))
+    return build("calendar", "v3", http=http, cache_discovery=False)
 
 
 def _is_declined(event):
