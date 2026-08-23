@@ -50,6 +50,16 @@ python install_autostart.py       # runs at login + adds a Start Menu shortcut
 `google-auth-oauthlib` (Calendar access), `winsound` (alert sound). No web
 server, no database, no external services besides the Google Calendar API.
 
+## Running tests
+
+Unit tests cover the non-GUI logic (scheduling/alert timing, calendar event
+filtering, config loading, etc.) using only the standard library's
+`unittest` — no extra dependencies to install:
+
+```
+python -m unittest discover -s tests -v
+```
+
 ## Performance
 
 Designed to be effectively idle:
