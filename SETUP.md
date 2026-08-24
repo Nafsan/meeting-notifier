@@ -32,7 +32,7 @@ you already have.
    - Application type: **Desktop app**.
    - Name it anything, e.g. "Meeting Notifier Desktop".
 5. Click **Download JSON** on the created client, rename the downloaded file
-   to `credentials.json`, and place it directly in this `meeting_notifyer/`
+   to `credentials.json`, and place it directly in this `meeting_notifier/`
    folder (next to `main.py`).
 
 Each person running this needs a `credentials.json`. Either do the steps
@@ -47,7 +47,7 @@ person still signs in with their own account and gets their own token.
 pip install -r requirements.txt
 ```
 
-Run this from inside `meeting_notifyer/`.
+Run this from inside `meeting_notifier/`.
 
 ## 3. First run (completes the OAuth login)
 
