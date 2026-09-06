@@ -9,6 +9,7 @@ import dpi_awareness  # noqa: F401 - import side effect must run before any Tk w
 import alert_ui
 import dashboard_ui
 import tray
+import welcome_ui
 from config import LOG_PATH, load_config
 from scheduler import Scheduler
 
@@ -26,11 +27,17 @@ POLL_INTERVAL_MS = 500
 
 def main():
     config = load_config()
-    scheduler = Scheduler(config)
-    scheduler.start()
 
     root = tk.Tk()
     root.withdraw()
+
+    if not welcome_ui.run_first_time_setup(root):
+        log.info("Setup cancelled on first run - exiting")
+        root.destroy()
+        return
+
+    scheduler = Scheduler(config)
+    scheduler.start()
 
     quit_requested = threading.Event()
     open_requested = threading.Event()

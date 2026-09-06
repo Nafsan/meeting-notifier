@@ -5,3 +5,10 @@ notifier.log.*
 icon.ico
 __pycache__/
 *.pyc
+
+# PyInstaller build output (see "Sharing with your team" in README.md for
+# the build command - the .spec file embeds an absolute path, so it's
+# regenerated each time rather than committed).
+build/
+dist/
+*.spec
