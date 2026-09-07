@@ -43,20 +43,38 @@ you already have.
 2. Go to **APIs & Services > Library**, search for **Google Calendar API**,
    and click **Enable**.
 3. Go to **APIs & Services > OAuth consent screen**.
-   - User type: **External** is fine.
    - Fill in an app name (e.g. "Meeting Notifier") and your email where
      required.
-   - **Set Publishing status to "In production"** (not "Testing"). Since
-     this app only requests the `calendar.readonly` scope — a "sensitive,"
-     not "restricted," scope — and you'll have well under 100 users, this
-     doesn't require Google's formal verification process. It's just a
-     toggle. This matters for two reasons:
-     - Teammates never need to be individually added as "Test users" — they
-       just click through Google's one-time "unverified app" warning
-       themselves on first sign-in.
-     - **Testing-status tokens silently expire after exactly 7 days**,
-       forcing everyone (including you) to re-sign-in weekly. Production
-       status doesn't have this trap.
+   - User type — pick based on your Google account:
+     - **If your Google account is on a Google Workspace domain** (e.g.
+       `you@yourcompany.com`) and you only want people on that same domain
+       to use this: choose **Internal**. This is the simplest option —
+       no "unverified app" warning screen for anyone, no verification ever
+       required, no Publishing status/Testing/Production step at all, and
+       no home page/privacy policy/domain fields to fill in. It's simply
+       restricted to your Workspace org.
+     - **Otherwise** (personal `@gmail.com` account, or you want people
+       outside your org to use it too): choose **External**, and set
+       **Publishing status to "In production"** (not "Testing") on the
+       **Audience** page. Since this app only requests the
+       `calendar.readonly` scope — a "sensitive," not "restricted," scope —
+       and you'll have well under 100 users, this doesn't require Google's
+       formal verification process, it's just a toggle. This matters for
+       two reasons:
+       - Teammates never need to be individually added as "Test users" —
+         they just click through Google's one-time "unverified app"
+         warning themselves on first sign-in.
+       - **Testing-status tokens silently expire after exactly 7 days**,
+         forcing everyone (including you) to re-sign-in weekly. Production
+         status doesn't have this trap.
+       - If Google blocks Publish with an "OAuth configuration is
+         incomplete" banner, it usually wants at least the **Application
+         home page** field on the Branding page filled in with a URL you
+         actually own — don't use a domain you don't control (e.g.
+         `github.com` itself), Google will reject it since domain
+         ownership can't be verified. Easiest fix: leave the App
+         domain/home page fields blank entirely and try Publish again
+         first; only fill them in if Google still insists.
 4. Go to **APIs & Services > Credentials > Create Credentials > OAuth client
    ID**.
    - Application type: **Desktop app**.

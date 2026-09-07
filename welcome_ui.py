@@ -32,13 +32,31 @@ def run_first_time_setup(root):
     win = tk.Toplevel(root)
     win.title("Welcome to Meeting Notifier")
     win.configure(bg=BG)
-    win.geometry("460x420")
     win.resizable(False, False)
 
-    badge = tk.Canvas(win, width=64, height=64, bg=BG, highlightthickness=0)
+    scale = dpi_awareness.get_scale_factor()
+    badge_size = int(64 * scale)
+    width, height = int(460 * scale), int(420 * scale)
+    x = (win.winfo_screenwidth() - width) // 2
+    y = (win.winfo_screenheight() - height) // 2
+    win.geometry(f"{width}x{height}+{x}+{y}")
+
+    # Without forcing focus, this window can open behind whatever the user
+    # just clicked (e.g. the Explorer window they launched the exe from)
+    # with no taskbar entry to find it by, since its owner `root` is
+    # withdrawn - it looks exactly like the app silently failed to start.
+    # Stays topmost for its whole lifetime (same as alert_ui's fullscreen
+    # alert) rather than dropping it after a timer - Windows' foreground-
+    # stealing prevention can otherwise shove it back behind other windows
+    # the instant topmost is cleared, making it look like it "vanished".
+    win.attributes("-topmost", True)
+    win.lift()
+    win.focus_force()
+
+    badge = tk.Canvas(win, width=badge_size, height=badge_size, bg=BG, highlightthickness=0)
     badge.pack(pady=(28, 12))
-    badge.create_oval(0, 0, 64, 64, fill=BADGE_BG, outline="")
-    badge.create_text(32, 32, text="\U0001F4C5", font=("Segoe UI Emoji", 26))
+    badge.create_oval(0, 0, badge_size, badge_size, fill=BADGE_BG, outline="")
+    badge.create_text(badge_size // 2, badge_size // 2, text="\U0001F4C5", font=("Segoe UI Emoji", 26))
 
     tk.Label(
         win, text="Meeting Notifier", font=("Segoe UI", 16, "bold"), bg=BG, fg=TEXT_PRIMARY,
@@ -85,6 +103,10 @@ def run_first_time_setup(root):
     def on_sign_in_click():
         sign_in_btn.config(state="disabled", text="Waiting for Google sign-in…")
         status_label.config(text="A browser window should open shortly.")
+        # Step out of the way so the browser's sign-in page isn't hidden
+        # behind this (topmost) window - re-raised below only if sign-in
+        # fails, so the user can see the error and retry.
+        win.attributes("-topmost", False)
         threading.Thread(target=do_sign_in, daemon=True).start()
 
     def poll_outcome():
@@ -106,12 +128,14 @@ def run_first_time_setup(root):
         else:
             sign_in_btn.config(state="normal", text="Sign in with Google")
             status_label.config(text=f"Sign-in failed: {detail[:60]}", fg="#d93025")
+            win.attributes("-topmost", True)
+            win.lift()
+            win.focus_force()
 
     sign_in_btn.config(command=on_sign_in_click)
     win.after(200, poll_outcome)
 
     win.protocol("WM_DELETE_WINDOW", win.destroy)
-    win.transient(root)
     win.grab_set()
     root.wait_window(win)
 

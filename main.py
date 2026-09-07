@@ -1,3 +1,41 @@
+import os
+import sys
+import traceback
+
+
+def _show_fatal_error(exc_type, exc, tb):
+    # A --windowed build has no console, so an uncaught exception here would
+    # otherwise fail completely silently - nothing on screen, nothing in
+    # notifier.log if the failure happened before logging was even set up
+    # (e.g. a broken/partial zip extraction missing a bundled dependency).
+    text = "".join(traceback.format_exception(exc_type, exc, tb))
+    try:
+        crash_dir = os.path.join(os.environ.get("LOCALAPPDATA", "."), "MeetingNotifier")
+        os.makedirs(crash_dir, exist_ok=True)
+        with open(os.path.join(crash_dir, "crash.log"), "a", encoding="utf-8") as f:
+            f.write(text + "\n")
+    except Exception:
+        pass
+    try:
+        import tkinter as tk
+        from tkinter import messagebox
+
+        root = tk.Tk()
+        root.withdraw()
+        messagebox.showerror(
+            "Meeting Notifier failed to start",
+            "Something went wrong on startup:\n\n"
+            + "".join(traceback.format_exception_only(exc_type, exc))
+            + "\nDetails were saved to:\n"
+            + os.path.join(os.environ.get("LOCALAPPDATA", "."), "MeetingNotifier", "crash.log"),
+        )
+        root.destroy()
+    except Exception:
+        pass
+
+
+sys.excepthook = _show_fatal_error
+
 import logging
 import queue
 import threading
