@@ -1,11 +1,14 @@
 import datetime as dt
 import sys
+import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from calendar_sync import _is_declined, fetch_upcoming_meet_events
+import calendar_sync
+from calendar_sync import _ensure_credentials_bootstrapped, _is_declined, fetch_upcoming_meet_events
 
 
 class FakeEventsResource:
@@ -106,6 +109,48 @@ class FetchUpcomingMeetEventsTests(unittest.TestCase):
         self.assertEqual(kwargs["calendarId"], "team@group.calendar.google.com")
         self.assertEqual(kwargs["singleEvents"], True)
         self.assertEqual(kwargs["orderBy"], "startTime")
+
+
+class EnsureCredentialsBootstrappedTests(unittest.TestCase):
+    def test_copies_bundled_template_when_missing_and_paths_differ(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            bundled = Path(tmp) / "bundled" / "credentials.json"
+            target = Path(tmp) / "user_data" / "credentials.json"
+            bundled.parent.mkdir()
+            target.parent.mkdir()
+            bundled.write_text('{"installed": {"client_id": "abc"}}', encoding="utf-8")
+
+            with patch.object(calendar_sync, "CREDENTIALS_PATH", target), \
+                 patch.object(calendar_sync, "BUNDLED_CREDENTIALS_PATH", bundled):
+                _ensure_credentials_bootstrapped()
+
+            self.assertTrue(target.exists())
+            self.assertEqual(target.read_text(encoding="utf-8"), bundled.read_text(encoding="utf-8"))
+
+    def test_does_nothing_if_credentials_already_exist(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            bundled = Path(tmp) / "bundled" / "credentials.json"
+            target = Path(tmp) / "user_data" / "credentials.json"
+            bundled.parent.mkdir()
+            target.parent.mkdir()
+            bundled.write_text("bundled-content", encoding="utf-8")
+            target.write_text("existing-content", encoding="utf-8")
+
+            with patch.object(calendar_sync, "CREDENTIALS_PATH", target), \
+                 patch.object(calendar_sync, "BUNDLED_CREDENTIALS_PATH", bundled):
+                _ensure_credentials_bootstrapped()
+
+            self.assertEqual(target.read_text(encoding="utf-8"), "existing-content")
+
+    def test_dev_mode_where_paths_are_identical_is_a_noop(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            same_path = Path(tmp) / "credentials.json"  # does not exist
+
+            with patch.object(calendar_sync, "CREDENTIALS_PATH", same_path), \
+                 patch.object(calendar_sync, "BUNDLED_CREDENTIALS_PATH", same_path):
+                _ensure_credentials_bootstrapped()  # should not raise
+
+            self.assertFalse(same_path.exists())
 
 
 if __name__ == "__main__":

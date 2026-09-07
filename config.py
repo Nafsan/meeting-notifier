@@ -1,11 +1,34 @@
 import json
+import os
+import sys
 from pathlib import Path
 
-APP_DIR = Path(__file__).resolve().parent
-CONFIG_PATH = APP_DIR / "config.json"
-CREDENTIALS_PATH = APP_DIR / "credentials.json"
-TOKEN_PATH = APP_DIR / "token.json"
-LOG_PATH = APP_DIR / "notifier.log"
+FROZEN = getattr(sys, "frozen", False)
+
+if FROZEN:
+    # PyInstaller --onedir: sys._MEIPASS is the folder containing the .exe
+    # and any bundled data files (a permanent location for --onedir, unlike
+    # the temp extraction --onefile builds use).
+    BUNDLE_DIR = Path(getattr(sys, "_MEIPASS", Path(sys.executable).resolve().parent))
+    # User-writable files go in the standard per-user app-data location, not
+    # next to the exe - the exe may be run straight out of a zip-extracted
+    # Downloads folder that could get deleted or re-extracted over.
+    USER_DATA_DIR = Path(os.environ.get("LOCALAPPDATA", Path.home())) / "MeetingNotifier"
+else:
+    BUNDLE_DIR = Path(__file__).resolve().parent
+    USER_DATA_DIR = BUNDLE_DIR
+
+USER_DATA_DIR.mkdir(parents=True, exist_ok=True)
+
+APP_DIR = USER_DATA_DIR
+CONFIG_PATH = USER_DATA_DIR / "config.json"
+CREDENTIALS_PATH = USER_DATA_DIR / "credentials.json"
+TOKEN_PATH = USER_DATA_DIR / "token.json"
+LOG_PATH = USER_DATA_DIR / "notifier.log"
+
+# Only relevant when frozen: a read-only template shipped inside the package,
+# copied to CREDENTIALS_PATH on first run if that doesn't exist yet.
+BUNDLED_CREDENTIALS_PATH = BUNDLE_DIR / "credentials.json"
 
 DEFAULTS = {
     "calendar_id": "primary",

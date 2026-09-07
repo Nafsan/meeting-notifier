@@ -1,5 +1,6 @@
 import datetime as dt
 import logging
+import shutil
 
 import httplib2
 from google.auth.transport.requests import Request
@@ -8,7 +9,7 @@ from google_auth_httplib2 import AuthorizedHttp
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 
-from config import CREDENTIALS_PATH, TOKEN_PATH
+from config import BUNDLED_CREDENTIALS_PATH, CREDENTIALS_PATH, TOKEN_PATH
 
 SCOPES = ["https://www.googleapis.com/auth/calendar.readonly"]
 
@@ -20,7 +21,19 @@ REQUEST_TIMEOUT_SECONDS = 15
 log = logging.getLogger("calendar_sync")
 
 
+def _ensure_credentials_bootstrapped():
+    """Copy the bundled default credentials.json into place on first run,
+    when packaged (BUNDLED_CREDENTIALS_PATH differs from CREDENTIALS_PATH).
+    In dev mode these are the same path, so this is a no-op."""
+    if CREDENTIALS_PATH.exists():
+        return
+    if BUNDLED_CREDENTIALS_PATH != CREDENTIALS_PATH and BUNDLED_CREDENTIALS_PATH.exists():
+        shutil.copy(BUNDLED_CREDENTIALS_PATH, CREDENTIALS_PATH)
+
+
 def get_credentials():
+    _ensure_credentials_bootstrapped()
+
     creds = None
     if TOKEN_PATH.exists():
         creds = Credentials.from_authorized_user_file(str(TOKEN_PATH), SCOPES)

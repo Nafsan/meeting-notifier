@@ -1,5 +1,6 @@
 import pystray
 
+import autostart
 from app_icon import make_icon_image
 
 
@@ -9,6 +10,15 @@ def create_icon(scheduler, on_open, on_quit):
 
     def sync_now(_icon, _item):
         scheduler.request_sync()
+
+    def toggle_autostart(_icon, _item):
+        # A plain action rather than a checkable/dynamic-text item - avoids
+        # needing to rebuild the native tray menu (not a cheap operation) just
+        # to keep a checkmark in sync.
+        if autostart.is_autostart_enabled():
+            autostart.uninstall()
+        else:
+            autostart.install()
 
     def quit_app(icon, _item):
         icon.stop()
@@ -20,6 +30,7 @@ def create_icon(scheduler, on_open, on_quit):
     menu = pystray.Menu(
         pystray.MenuItem("Open dashboard", open_dashboard, default=True),
         pystray.MenuItem("Sync now", sync_now),
+        pystray.MenuItem("Toggle autostart", toggle_autostart),
         pystray.MenuItem("Quit", quit_app),
     )
 
